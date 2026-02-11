@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import recipesRouter from './routes/recipes.js';
 import insightsRoute from './routes/insights.js';
+import interrogateRoute from './routes/interrogate.js';
 
 const app = express();
 
@@ -17,5 +18,7 @@ app.get('/', (_, res) => {
 });
 app.use('/recipes', recipesRouter);
 app.use('/insights', insightsRoute);
+app.use('/interrogate', interrogateRoute);
+
 
 export default app;
