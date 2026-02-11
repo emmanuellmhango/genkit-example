@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
-    const { question, currentSelection, fullDataset, metric } = req.body;
+    const { question, currentSelection, metric } = req.body;
 
     if (!question) {
       return res.status(400).json({ error: 'Question is required.' });
@@ -14,8 +14,7 @@ router.post('/', async (req, res) => {
     const result = await interrogateFlow({
       question,
       currentSelection,
-      fullDataset,
-      metric,
+      metric
     });
 
     res.json(result);

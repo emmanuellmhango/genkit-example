@@ -10,7 +10,6 @@ export const InterrogateInputSchema = z.object({
   question: z.string(),
   metric: z.string(),
   currentSelection: z.array(z.any()),
-  fullDataset: z.array(z.any()),
 });
 
 export const InterrogateOutputSchema = z.object({
@@ -37,9 +36,6 @@ User Question:
 
 Current Filtered Data:
 ${JSON.stringify(input.currentSelection.slice(0, 300), null, 2)}
-
-Full Dataset (truncated):
-${JSON.stringify(input.fullDataset.slice(0, 500), null, 2)}
 
 Instructions:
 - If the question requires comparison, compare appropriately.
