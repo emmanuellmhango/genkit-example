@@ -3,27 +3,24 @@ import { genkit, z } from 'genkit';
 
 export const ai = genkit({
   plugins: [googleAI()],
-  model: googleAI.model('gemini-2.5-flash', {
-    temperature: 0.7,
-  }),
+  model: googleAI.model('gemini-2.5-flash', { temperature: 0.7 }),
 });
 
-// Input schema
+// Input schema: raw data
 export const InsightInputSchema = z.object({
-  metric: z.string(),
+  metric: z.enum(['water', 'temp', 'cond']), // <-- use enum instead of string
   forecastYears: z.number(),
-  analysis: z.object({
-    count: z.number(),
-    mean: z.number(),
-    min: z.number(),
-    max: z.number(),
-    variance: z.number(),
-    slope: z.number(),
-    trend: z.string(),
-  }),
+  data: z.array(
+    z.object({
+      date: z.string(),
+      water: z.number().optional(),
+      temp: z.number().optional(),
+      cond: z.number().optional(),
+    })
+  ),
 });
 
-// Output schema
+// Output schema: same as before
 export const InsightOutputSchema = z.object({
   executiveSummary: z.string(),
   riskLevel: z.enum(['low', 'moderate', 'high']),
@@ -45,22 +42,10 @@ You are a groundwater policy analyst.
 Metric: ${input.metric}
 Forecast Horizon: ${input.forecastYears} years
 
-Statistical Summary:
-- Data points: ${input.analysis.count}
-- Mean: ${input.analysis.mean}
-- Min: ${input.analysis.min}
-- Max: ${input.analysis.max}
-- Variance: ${input.analysis.variance}
-- Slope: ${input.analysis.slope}
-- Trend: ${input.analysis.trend}
+Data points (date + value):
+${input.data.map(d => `${d.date}: ${d[input.metric]}`).join('\n')}
 
-Provide:
-1. Executive summary (technical tone)
-2. Risk classification (low, moderate, high)
-3. Clear policy actions
-4. Additional policy considerations
-
-Respond strictly according to schema.
+Analyze the trend, risk, and provide actionable policy recommendations. Respond strictly according to the schema.
 `;
 
     const { output } = await ai.generate({
@@ -73,4 +58,3 @@ Respond strictly according to schema.
     return output;
   }
 );
-
