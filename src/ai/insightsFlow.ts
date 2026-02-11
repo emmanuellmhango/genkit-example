@@ -9,53 +9,63 @@ export const ai = genkit({
 });
 
 // Input schema
-export const InsightsInputSchema = z.object({
-  data: z.array(
-    z.object({
-      date: z.string(),
-      district: z.string(),
-      water: z.number().optional(),
-      temp: z.number().optional(),
-      cond: z.number().optional(),
-      lat: z.number().optional(),
-      lng: z.number().optional(),
-      name: z.string().optional(),
-    })
-  ),
-  metric: z.enum(['water', 'temp', 'cond']),
-  forecastYears: z.number().min(1).max(10).default(5),
+export const InsightInputSchema = z.object({
+  metric: z.string(),
+  forecastYears: z.number(),
+  analysis: z.object({
+    count: z.number(),
+    mean: z.number(),
+    min: z.number(),
+    max: z.number(),
+    variance: z.number(),
+    slope: z.number(),
+    trend: z.string(),
+  }),
 });
 
 // Output schema
-export const InsightsSchema = z.object({
-  summary: z.string(),
-  recommendations: z.array(z.string()),
+export const InsightOutputSchema = z.object({
+  executiveSummary: z.string(),
+  riskLevel: z.enum(['low', 'moderate', 'high']),
+  recommendedActions: z.array(z.string()),
+  policyNotes: z.string(),
 });
 
 // Flow
-export const insightsGeneratorFlow = ai.defineFlow(
+export const insightFlow = ai.defineFlow(
   {
-    name: 'insightsGeneratorFlow',
-    inputSchema: InsightsInputSchema,
-    outputSchema: InsightsSchema,
+    name: 'insightFlow',
+    inputSchema: InsightInputSchema,
+    outputSchema: InsightOutputSchema,
   },
   async (input) => {
     const prompt = `
-      You are an environmental data analyst.
+You are a groundwater policy analyst.
 
-      Analyze the dataset below for metric: ${input.metric}.
-      Provide:
-      1. A concise analytical summary
-      2. Forecast implications for the next ${input.forecastYears} years
-      3. Actionable policy recommendations
+Metric: ${input.metric}
+Forecast Horizon: ${input.forecastYears} years
 
-      Dataset:
-      ${JSON.stringify(input.data)}
-    `;
+Statistical Summary:
+- Data points: ${input.analysis.count}
+- Mean: ${input.analysis.mean}
+- Min: ${input.analysis.min}
+- Max: ${input.analysis.max}
+- Variance: ${input.analysis.variance}
+- Slope: ${input.analysis.slope}
+- Trend: ${input.analysis.trend}
+
+Provide:
+1. Executive summary (technical tone)
+2. Risk classification (low, moderate, high)
+3. Clear policy actions
+4. Additional policy considerations
+
+Respond strictly according to schema.
+`;
 
     const { output } = await ai.generate({
       prompt,
-      output: { schema: InsightsSchema },
+      output: { schema: InsightOutputSchema },
     });
 
     if (!output) throw new Error('Insight generation failed');
@@ -63,3 +73,4 @@ export const insightsGeneratorFlow = ai.defineFlow(
     return output;
   }
 );
+
